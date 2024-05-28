@@ -8,7 +8,7 @@ const videoId = "oQ-pEiGQvD4"
 
 // Load client secrets from a local file
 const CREDENTIALS_PATH = "Authentication.json"; // Path to your OAuth 2.0 credentials
-const TOKEN_PATH = 'token.json'; // Path to store the token
+const TOKEN_PATH = "token.json"; // Path to store the token
 
 // Replace with your video ID
 const VIDEO_ID = 'oQ-pEiGQvD4';
@@ -35,10 +35,34 @@ function authorize(credentials, callback) {
     // Check if we have previously stored a token
     fs.readFile(TOKEN_PATH, (err, token) => {
         if (err) return getAccessToken(oAuth2Client, callback);
-        else {
-            oAuth2Client.setCredentials(JSON.parse(token));
+        const parsedToken = JSON.parse(token);
+        if (isTokenExpired(parsedToken)) {
+            // If token is expired, refresh it
+            refreshToken(oAuth2Client, parsedToken.refresh_token, (newToken) => {
+                oAuth2Client.setCredentials(newToken);
+                callback(oAuth2Client);
+            });
+        } else {
+            // If token is not expired, set it as credentials
+            oAuth2Client.setCredentials(parsedToken);
             callback(oAuth2Client);
         }
+    });
+}
+
+function isTokenExpired(token) {
+    return token.expiry_date < Date.now();
+}
+
+function refreshToken(oAuth2Client, refreshToken, callback) {
+    oAuth2Client.refreshAccessToken((err, token) => {
+        if (err) return console.error('Error refreshing access token', err);
+        // Store the new token to disk for later program executions
+        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+            if (err) return console.error('Error writing token to file', err);
+            console.log('Token refreshed successfully');
+            callback(token);
+        });
     });
 }
 
