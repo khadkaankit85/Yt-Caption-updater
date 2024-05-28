@@ -101,40 +101,42 @@ async function getVideoViewCount() {
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client
  */
 async function updateVideoTitleBasedOnViews(auth) {
+    setInterval(async () => {
 
-    const viewCount = await getVideoViewCount(VIDEO_ID, API_KEY);
-    const newTitle = `This video has ${viewCount} Views`;
+        const viewCount = await getVideoViewCount(VIDEO_ID, API_KEY);
+        const newTitle = `This video has ${viewCount} Views`;
 
-    const service = google.youtube('v3');
-    service.videos.list({
-        auth: auth,
-        part: 'snippet',
-        id: VIDEO_ID,
-    }, (err, response) => {
-        if (err) return console.error('The API returned an error: ' + err);
-        if (response.data.items.length === 0) {
-            console.log('No video found.');
-            return;
-        }
-        const video = response.data.items[0];
-        console.log(video.snippet.title)
-        video.snippet.title = newTitle;
-        console.log(video.snippet.title)
-
-        service.videos.update({
+        const service = google.youtube('v3');
+        service.videos.list({
             auth: auth,
             part: 'snippet',
-            resource: {
-                id: VIDEO_ID,
-                snippet: video.snippet,
-            },
+            id: VIDEO_ID,
         }, (err, response) => {
-            if (err) return console.error('Error updating video title: ' + err);
-            console.log('Title updated successfully:', response.data.snippet.title);
+            if (err) return console.error('The API returned an error: ' + err);
+            if (response.data.items.length === 0) {
+                console.log('No video found.');
+                return;
+            }
+            const video = response.data.items[0];
+            console.log(video.snippet.title)
+            video.snippet.title = newTitle;
+            console.log(video.snippet.title)
+
+            service.videos.update({
+                auth: auth,
+                part: 'snippet',
+                resource: {
+                    id: VIDEO_ID,
+                    snippet: video.snippet,
+                },
+            }, (err, response) => {
+                if (err) return console.error('Error updating video title: ' + err);
+                console.log('Title updated successfully:', response.data.snippet.title);
+            });
         });
-    });
 
 
+    }, 1000 * 60 * 10)
 
 
 }
