@@ -20,7 +20,7 @@ oAuth2Client.setCredentials({
     refresh_token: process.env.YOUTUBE_V3_REFRESH_TOKEN,
 });
 
-async function startUpdatingVideoTitle() {
+async function startUpdatingVideoTitle(res) {
     try {
         // Check if the token is expired and refresh it if needed
         if (isTokenExpired(oAuth2Client.credentials)) {
@@ -55,6 +55,7 @@ async function startUpdatingVideoTitle() {
         });
 
         console.log('Title updated successfully:', updateResponse.data.snippet.title);
+        res.status(200).send(updateResponse.data.snippet.title);
     } catch (error) {
         console.error('Error updating video title:', error);
     }
@@ -100,7 +101,7 @@ async function refreshToken(oAuth2Client) {
 
 export default async function handler(req, res) {
     if (req.method === 'GET' && req.url === '/update') {
-        await startUpdatingVideoTitle();
+        await startUpdatingVideoTitle(res);
         res.status(200).send('Video title updated successfully!');
     } else {
         res.status(404).send('Not Found');
