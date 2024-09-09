@@ -22,6 +22,11 @@ oAuth2Client.setCredentials({
 
 async function startUpdatingVideoTitle() {
     try {
+        // Check if the token is expired and refresh it if needed
+        if (isTokenExpired(oAuth2Client.credentials)) {
+            await refreshToken(oAuth2Client);
+        }
+
         const viewCount = await getVideoViewCount(videoId, apiKey);
         const newTitle = `This video has ${viewCount} Views`;
 
@@ -72,24 +77,32 @@ async function getVideoViewCount(videoId, apiKey) {
 }
 
 function isTokenExpired(token) {
-    return token.expiry_date < Date.now();
+    // If token doesn't have an expiry_date, assume it's not expired
+    if (!token || !token.expiry_date) return false;
+
+    return Date.now() >= token.expiry_date;
 }
 
-function refreshToken(oAuth2Client, callback) {
-    oAuth2Client.refreshAccessToken((err, token) => {
-        if (err) return console.error('Error refreshing access token', err);
-        console.log('New access token:', token.access_token);
+async function refreshToken(oAuth2Client) {
+    try {
+        const { token } = await oAuth2Client.refreshAccessToken();
 
+        // Update the credentials with the new token
         oAuth2Client.setCredentials(token);
-        callback(token);
-    });
+
+        // Log or save the new token as needed
+        console.log('Token refreshed successfully:', token.access_token);
+
+    } catch (error) {
+        console.error('Error refreshing access token:', error);
+    }
 }
 
 export default async function handler(req, res) {
-    if (req.method === 'GET') {
+    if (req.method === 'GET' && req.url === '/update') {
         await startUpdatingVideoTitle();
         res.status(200).send('Video title updated successfully!');
     } else {
-        res.status(405).send('Method Not Allowed');
+        res.status(404).send('Not Found');
     }
 }
