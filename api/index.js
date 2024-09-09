@@ -6,7 +6,6 @@ dotenv.config();
 
 const videoId = "oQ-pEiGQvD4";
 const apiKey = process.env.YOUTUBE_V3_API_KEY;
-
 const mainUrlYt = "https://www.googleapis.com/youtube/v3/";
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -27,38 +26,42 @@ async function startUpdatingVideoTitle(res) {
             await refreshToken(oAuth2Client);
         }
 
-        const viewCount = await getVideoViewCount(videoId, apiKey);
-        const newTitle = `This video has ${viewCount} Views. last updated on ${new Date().toLocaleString()}`;
-
+        // Initialize YouTube API client
         const service = google.youtube('v3');
-        const response = await service.videos.list({
-            auth: oAuth2Client,
-            part: 'snippet',
-            id: videoId,
-        });
 
-        if (response.data.items.length === 0) {
-            console.log('No video found.');
-            return;
+        // Fetch video details and view count in one go
+        const videoDetails = await getVideoDetails(service, videoId);
+        const viewCount = await getVideoViewCount(videoId, apiKey);
+
+        if (!videoDetails) {
+            return res.status(404).send('No video found.');
         }
 
-        const video = response.data.items[0];
-        video.snippet.title = newTitle;
+        const currentTitle = videoDetails.snippet.title;
+        const newTitle = `This video has ${viewCount} Views. Last updated on ${new Date().toLocaleString()}`;
 
-        const updateResponse = await service.videos.update({
-            auth: oAuth2Client,
-            part: 'snippet',
-            resource: {
-                id: videoId,
-                snippet: video.snippet,
-            },
-        });
+        // Check if the title needs to be updated
+        if (currentTitle === newTitle) {
+            return res.status(200).send('Title is already up-to-date.');
+        }
 
+        // Update the video title
+        const updateResponse = await updateVideoTitle(service, videoId, newTitle);
         console.log('Title updated successfully:', updateResponse.data.snippet.title);
         return res.status(200).send(updateResponse.data.snippet.title);
+
     } catch (error) {
         return res.status(500).send('Error updating video title: ' + error);
     }
+}
+
+async function getVideoDetails(service, videoId) {
+    const response = await service.videos.list({
+        auth: oAuth2Client,
+        part: 'snippet',
+        id: videoId,
+    });
+    return response.data.items.length > 0 ? response.data.items[0] : null;
 }
 
 async function getVideoViewCount(videoId, apiKey) {
@@ -66,34 +69,35 @@ async function getVideoViewCount(videoId, apiKey) {
     try {
         const response = await fetch(url);
         const data = await response.json();
-        if (data.items && data.items.length > 0) {
-            return data.items[0].statistics.viewCount;
-        } else {
-            return 0;
-        }
+        return data.items && data.items.length > 0 ? data.items[0].statistics.viewCount : 0;
     } catch (error) {
         console.error('Error fetching video data:', error);
         return 0;
     }
 }
 
-function isTokenExpired(token) {
-    // If token doesn't have an expiry_date, assume it's not expired
-    if (!token || !token.expiry_date) return false;
+async function updateVideoTitle(service, videoId, newTitle) {
+    return await service.videos.update({
+        auth: oAuth2Client,
+        part: 'snippet',
+        resource: {
+            id: videoId,
+            snippet: {
+                title: newTitle,
+            },
+        },
+    });
+}
 
-    return Date.now() >= token.expiry_date;
+function isTokenExpired(token) {
+    return !token || !token.expiry_date || Date.now() >= token.expiry_date;
 }
 
 async function refreshToken(oAuth2Client) {
     try {
         const { token } = await oAuth2Client.refreshAccessToken();
-
-        // Update the credentials with the new token
         oAuth2Client.setCredentials(token);
-
-        // Log or save the new token as needed
         console.log('Token refreshed successfully:', token.access_token);
-
     } catch (error) {
         console.error('Error refreshing access token:', error);
     }
