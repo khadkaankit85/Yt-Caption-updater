@@ -90,7 +90,7 @@ async function updateVideoTitle(service, videoId, newTitle) {
 }
 
 function isTokenExpired(token) {
-    return !token || !token.expiry_date || Date.now() >= token.expiry_date;
+    return !token || !token.expiry_date || Date.now() >= token.expiry_date || token === undefined;
 }
 
 async function refreshToken(oAuth2Client) {
@@ -110,3 +110,4 @@ export default async function handler(req, res) {
         res.status(404).send('Not Found');
     }
 }
+
