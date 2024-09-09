@@ -5,16 +5,16 @@ import { Response, Request } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 
 // for development
-import express from "express";
+// import express from "express";
 
-const app = express();
-const PORT = 3000;
-app.get("/", async (req, res) => {
-    await startUpdatingVideoTitle(res);
-});
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// const app = express();
+// const PORT = 3000;
+// app.get("/", async (req, res) => {
+//     await startUpdatingVideoTitle(res);
+// });
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
 
 dotenv.config();
 
