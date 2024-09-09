@@ -28,7 +28,7 @@ async function startUpdatingVideoTitle(res) {
         }
 
         const viewCount = await getVideoViewCount(videoId, apiKey);
-        const newTitle = `This video has ${viewCount} Views. last updated on ${new Date()}`;
+        const newTitle = `This video has ${viewCount} Views. last updated on ${new Date().toLocaleString()}`;
 
         const service = google.youtube('v3');
         const response = await service.videos.list({
@@ -55,9 +55,9 @@ async function startUpdatingVideoTitle(res) {
         });
 
         console.log('Title updated successfully:', updateResponse.data.snippet.title);
-        res.status(200).send(updateResponse.data.snippet.title);
+        return res.status(200).send(updateResponse.data.snippet.title);
     } catch (error) {
-        console.error('Error updating video title:', error);
+        return res.status(500).send('Error updating video title: ' + error);
     }
 }
 
@@ -102,7 +102,6 @@ async function refreshToken(oAuth2Client) {
 export default async function handler(req, res) {
     if (req.method === 'GET' && req.url === '/update') {
         await startUpdatingVideoTitle(res);
-        res.status(200).send('Video title updated successfully!');
     } else {
         res.status(404).send('Not Found');
     }
