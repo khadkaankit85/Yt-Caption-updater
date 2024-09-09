@@ -28,7 +28,7 @@ async function startUpdatingVideoTitle() {
         }
 
         const viewCount = await getVideoViewCount(videoId, apiKey);
-        const newTitle = `This video has ${viewCount} Views`;
+        const newTitle = `This video has ${viewCount} Views. last updated on ${new Date()}`;
 
         const service = google.youtube('v3');
         const response = await service.videos.list({
