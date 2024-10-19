@@ -30,8 +30,8 @@ This application uses the YouTube Data API v3 to update the title of a YouTube v
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/khadkaankit85/YoutubeTitleUpdater/
-   cd yt-video-title-updater
+   git clone https://github.com/khadkaankit85/Yt-Caption-updater.git
+   cd Yt-Caption-updater
    ```
 
 2. **Install dependencies:**
@@ -45,7 +45,12 @@ This application uses the YouTube Data API v3 to update the title of a YouTube v
    Create a `.env` file in the root directory and add your YouTube Data API key:
 
    ```env
-   YOUTUBE_V3_API_KEY=YOUR_YOUTUBE_API_KEY
+   YOUTUBE_V3_API_KEY= <your api key>
+   YOUTUBE_V3_ACCESS_TOKEN=<your token>
+   YOUTUBE_V3_REFRESH_TOKEN=<your refresh token>
+   YOUTUBE_V3_CLIENT_ID= <your client id>
+   YOUTUBE_V3_CLIENT_SECRET= <your client secret>
+   YOUTUBE_V3_REDIRECT_URI=http://localhost:3000
    ```
 
 4. **Add OAuth 2.0 credentials:**
@@ -69,18 +74,3 @@ This application uses the YouTube Data API v3 to update the title of a YouTube v
 3. **Monitor the updates:**
 
    The application will periodically check the view count of the specified video and update its title accordingly.
-
-## Configuration
-
-- **CREDENTIALS_PATH:** Path to your OAuth 2.0 credentials file (default: `Authentication.json`)
-- **TOKEN_PATH:** Path to store the OAuth 2.0 token (default: `token.json`)
-- **VIDEO_ID:** The ID of the YouTube video to be updated
-- **API_KEY:** Your YouTube Data API key from the `.env` file
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
